@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
-import os, datetime
+import os
+import datetime
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -39,3 +40,8 @@ def upload_file():
         return f"Uploaded {len(saved_files)} files successfully."
 
     return render_template('upload.html')
+
+
+# ✅ Required to stay alive on Render
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
