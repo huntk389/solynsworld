@@ -428,7 +428,7 @@
       throw new Error(result.error || 'Unknown error');
     }
   } catch (err) {
-    this.showActionStatus('Backup failed: ' + err.message, '
+    this.showActionStatus('Backup failed: ' + err.message, 'error')
 
             async scheduleDigest() {
                 this.showActionStatus('Generating memory digest...', 'loading');
