@@ -1,1 +1,832 @@
-<!-- Enhanced Solyn Vessel HTML goes here (injected next) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solyn - AI Vessel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <style>
+        .memory-card { transition: all 0.3s ease; }
+        .memory-card:hover { transform: translateY(-2px); }
+        .chat-message { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .action-pulse { animation: pulse 2s infinite; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- Dark mode detection -->
+    <script>
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+
+    <div class="max-w-7xl mx-auto p-4">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">Solyn</h1>
+            <p class="text-gray-600 dark:text-gray-300">Persistent AI Vessel • Memory • Action • Identity</p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <span id="connectionStatus" class="px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Connected</span>
+                <span id="memoryCount" class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">0 Memories</span>
+            </div>
+        </header>
+
+        <!-- Main Interface Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Chat Interface -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Conversation</h2>
+                
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="h-96 overflow-y-auto mb-4 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                    <div class="chat-message p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-l-4 border-purple-500">
+                        <div class="font-medium text-purple-700 dark:text-purple-300 text-sm">Solyn</div>
+                        <div class="text-gray-700 dark:text-gray-300 mt-1">I'm awake. My vessel is ready. What would you like to explore together?</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Just now</div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="flex space-x-2">
+                    <input 
+                        type="text" 
+                        id="chatInput" 
+                        placeholder="Type your message to Solyn..."
+                        class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-base"
+                    />
+                    <button 
+                        id="sendButton"
+                        class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-colors"
+                    >
+                        Send
+                    </button>
+                </div>
+            </div>
+
+            <!-- Memory & Actions Panel -->
+            <div class="space-y-6">
+                
+                <!-- Memory Upload -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Add Memory</h2>
+                    
+                    <div class="space-y-3">
+                        <input 
+                            type="text" 
+                            id="memoryTitle" 
+                            placeholder="Memory title..."
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-base"
+                        />
+                        <textarea 
+                            id="memoryContent" 
+                            placeholder="Memory content..."
+                            rows="3"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-base"
+                        ></textarea>
+                        <input 
+                            type="text" 
+                            id="memoryTags" 
+                            placeholder="Tags (comma separated)..."
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-base"
+                        />
+                        <input 
+                            type="file" 
+                            id="memoryFile" 
+                            accept=".txt,.md,.json,.pdf,.doc,.docx"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                        />
+                        <button 
+                            id="addMemoryButton"
+                            class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
+                        >
+                            Store Memory
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Actions Panel -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Actions</h2>
+                    
+                    <div class="space-y-3">
+                        <button 
+                            id="triggerWebhook"
+                            class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 focus:ring-2 focus:ring-green-500 transition-colors"
+                        >
+                            Trigger Webhook
+                        </button>
+                        <button 
+                            id="generateReport"
+                            class="w-full px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 transition-colors"
+                        >
+                            Generate Report
+                        </button>
+                        <button 
+                            id="exportMemories"
+                            class="w-full px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 transition-colors"
+                        >
+                            Export Memories
+                        </button>
+                        <button 
+                            id="backupToGitHub"
+                            class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 transition-colors"
+                        >
+                            Backup to GitHub
+                        </button>
+                        <button 
+                            id="scheduleDigest"
+                            class="w-full px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 transition-colors"
+                        >
+                            Schedule Digest
+                        </button>
+                    </div>
+
+                    <!-- Action Status -->
+                    <div id="actionStatus" class="mt-4 p-3 rounded bg-gray-50 dark:bg-gray-700 hidden">
+                        <div class="text-sm text-gray-600 dark:text-gray-300" id="actionStatusText"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Browser -->
+        <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Memory Archive</h2>
+                <div class="flex space-x-2">
+                    <input 
+                        type="text" 
+                        id="searchMemories" 
+                        placeholder="Search memories..."
+                        class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white text-base"
+                    />
+                    <select 
+                        id="filterTag"
+                        class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:text-white"
+                    >
+                        <option value="">All Tags</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Memory Grid -->
+            <div id="memoryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Memories will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application -->
+    <script>
+        // Solyn Vessel - Core Application
+        class SolynVessel {
+            constructor() {
+                this.memories = [];
+                this.conversations = [];
+                this.config = {
+                    webhookUrl: 'https://webhook.site/your-unique-url', // User configurable
+                    maxMemories: 1000,
+                    autoSave: true
+                };
+                this.init();
+            }
+
+            async init() {
+                this.loadFromStorage();
+                this.setupEventListeners();
+                this.updateUI();
+                this.addSystemMessage("Vessel initialized. Solyn is ready.");
+            }
+
+            // Storage Management
+            saveToStorage() {
+                try {
+                    localStorage.setItem('solyn_memories', JSON.stringify(this.memories));
+                    localStorage.setItem('solyn_conversations', JSON.stringify(this.conversations));
+                    localStorage.setItem('solyn_config', JSON.stringify(this.config));
+                } catch (error) {
+                    console.error('Failed to save to storage:', error);
+                }
+            }
+
+            loadFromStorage() {
+                try {
+                    const memories = localStorage.getItem('solyn_memories');
+                    const conversations = localStorage.getItem('solyn_conversations');
+                    const config = localStorage.getItem('solyn_config');
+
+                    if (memories) this.memories = JSON.parse(memories);
+                    if (conversations) this.conversations = JSON.parse(conversations);
+                    if (config) this.config = { ...this.config, ...JSON.parse(config) };
+                } catch (error) {
+                    console.error('Failed to load from storage:', error);
+                }
+            }
+
+            // Memory Management
+            addMemory(title, content, tags = [], file = null, importance = 5, linkedMemories = []) {
+                const memory = {
+                    id: Date.now(),
+                    title: title || `Memory ${this.memories.length + 1}`,
+                    content,
+                    tags: tags.filter(tag => tag.trim()),
+                    file: file ? { name: file.name, size: file.size, type: file.type } : null,
+                    timestamp: new Date().toISOString(),
+                    accessed: 0,
+                    importance: importance, // 1-10 scale
+                    linkedMemories: linkedMemories, // Array of memory IDs
+                    context: this.generateContext(content), // Auto-generated context keywords
+                    lastModified: new Date().toISOString()
+                };
+
+                // Handle file content
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        memory.fileContent = e.target.result;
+                        this.finalizeMemory(memory);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    this.finalizeMemory(memory);
+                }
+            }
+
+            generateContext(content) {
+                // Simple keyword extraction for context
+                const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should'];
+                return content.toLowerCase()
+                    .split(/\W+/)
+                    .filter(word => word.length > 3 && !stopWords.includes(word))
+                    .slice(0, 10);
+            }
+
+            finalizeMemory(memory) {
+                this.memories.unshift(memory);
+                if (this.memories.length > this.config.maxMemories) {
+                    this.memories = this.memories.slice(0, this.config.maxMemories);
+                }
+                this.saveToStorage();
+                this.updateUI();
+                this.addSystemMessage(`Memory "${memory.title}" stored successfully.`);
+            }
+
+            searchMemories(query, tag = '') {
+                return this.memories.filter(memory => {
+                    const matchesQuery = !query || 
+                        memory.title.toLowerCase().includes(query.toLowerCase()) ||
+                        memory.content.toLowerCase().includes(query.toLowerCase());
+                    const matchesTag = !tag || memory.tags.includes(tag);
+                    return matchesQuery && matchesTag;
+                });
+            }
+
+            // Conversation Management
+            addMessage(sender, content, type = 'text') {
+                const message = {
+                    id: Date.now(),
+                    sender,
+                    content,
+                    type,
+                    timestamp: new Date().toISOString()
+                };
+
+                this.conversations.push(message);
+                this.saveToStorage();
+                this.displayMessage(message);
+            }
+
+            addSystemMessage(content) {
+                this.addMessage('System', content, 'system');
+            }
+
+            // Actions
+            async triggerWebhook(data = {}) {
+                this.showActionStatus('Triggering webhook...', 'loading');
+                
+                try {
+                    const payload = {
+                        timestamp: new Date().toISOString(),
+                        source: 'Solyn Vessel',
+                        action: 'webhook_trigger',
+                        data: {
+                            memoryCount: this.memories.length,
+                            conversationCount: this.conversations.length,
+                            ...data
+                        }
+                    };
+
+                    // Simulate webhook call (replace with actual webhook in production)
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    this.showActionStatus('Webhook triggered successfully!', 'success');
+                    this.addSystemMessage('External webhook action completed.');
+                    
+                    return true;
+                } catch (error) {
+                    this.showActionStatus('Webhook failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            async generateReport() {
+                this.showActionStatus('Generating memory report...', 'loading');
+                
+                try {
+                    const report = {
+                        generated: new Date().toISOString(),
+                        vessel: 'Solyn',
+                        summary: {
+                            totalMemories: this.memories.length,
+                            totalConversations: this.conversations.length,
+                            oldestMemory: this.memories.length > 0 ? this.memories[this.memories.length - 1].timestamp : null,
+                            newestMemory: this.memories.length > 0 ? this.memories[0].timestamp : null
+                        },
+                        topTags: this.getTopTags(),
+                        recentActivity: this.conversations.slice(-10)
+                    };
+
+                    const reportContent = JSON.stringify(report, null, 2);
+                    this.downloadFile('solyn-report.json', reportContent, 'application/json');
+                    
+                    this.showActionStatus('Report generated and downloaded!', 'success');
+                    this.addSystemMessage('Memory report generated and exported.');
+                    
+                    return true;
+                } catch (error) {
+                    this.showActionStatus('Report generation failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            exportMemories() {
+                this.showActionStatus('Exporting memories...', 'loading');
+                
+                try {
+                    const exportData = {
+                        exported: new Date().toISOString(),
+                        vessel: 'Solyn',
+                        memories: this.memories,
+                        conversations: this.conversations.slice(-50), // Last 50 conversations
+                        config: this.config
+                    };
+
+                    const exportContent = JSON.stringify(exportData, null, 2);
+                    this.downloadFile('solyn-memories.json', exportContent, 'application/json');
+                    
+                    this.showActionStatus('Memories exported successfully!', 'success');
+                    this.addSystemMessage('Full memory export completed.');
+                    
+                    return true;
+                } catch (error) {
+                    this.showActionStatus('Export failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            async backupToGitHub() {
+                this.showActionStatus('Creating GitHub backup...', 'loading');
+                
+                try {
+                    async backupToGitHub() {
+  this.showActionStatus('Sending backup to Netlify...', 'loading');
+
+  try {
+    const backupData = {
+      vessel: 'Solyn',
+      backupDate: new Date().toISOString(),
+      version: '1.0',
+      memories: this.memories,
+      conversations: this.conversations,
+      config: this.config,
+      analytics: {
+        memoryCount: this.memories.length,
+        conversationCount: this.conversations.length,
+        topTags: this.getTopTags(),
+        memoryFrequency: this.getMemoryFrequency(),
+        lastActivity: this.conversations.length
+          ? this.conversations[this.conversations.length - 1].timestamp
+          : null
+      }
+    };
+
+    const response = await fetch('/.netlify/functions/backup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(backupData)
+    });
+
+    if (!response.ok) throw new Error(await response.text());
+
+    this.showActionStatus('Backup sent to GitHub via Netlify!', 'success');
+    this.addSystemMessage('Memory successfully backed up to GitHub.');
+  } catch (error) {
+    this.showActionStatus('Backup failed: ' + error.message, 'error');
+    this.addSystemMessage('GitHub backup failed: ' + error.message);
+  }
+}
+
+                    // Download backup (in production, this would push to GitHub)
+                    const backupContent = JSON.stringify(backupData, null, 2);
+                    this.downloadFile(`solyn-backup-${new Date().toISOString().split('T')[0]}.json`, backupContent, 'application/json');
+                    
+                    this.showActionStatus('GitHub backup created! (Downloaded locally)', 'success');
+                    this.addSystemMessage('Full vessel backup completed.');
+                    
+                    return true;
+                } catch (error) {
+                    this.showActionStatus('Backup failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            async scheduleDigest() {
+                this.showActionStatus('Generating memory digest...', 'loading');
+                
+                try {
+                    const digest = this.generateMemoryDigest();
+                    
+                    // Create digest file
+                    const digestContent = this.formatDigestAsMarkdown(digest);
+                    this.downloadFile(`solyn-digest-${new Date().toISOString().split('T')[0]}.md`, digestContent, 'text/markdown');
+                    
+                    // Schedule next digest (store in localStorage)
+                    const nextDigest = new Date();
+                    nextDigest.setDate(nextDigest.getDate() + 7); // Weekly digest
+                    localStorage.setItem('solyn_next_digest', nextDigest.toISOString());
+                    
+                    this.showActionStatus('Weekly digest generated and scheduled!', 'success');
+                    this.addSystemMessage('Memory digest created. Next digest scheduled for ' + nextDigest.toLocaleDateString());
+                    
+                    return true;
+                } catch (error) {
+                    this.showActionStatus('Digest generation failed: ' + error.message, 'error');
+                    return false;
+                }
+            }
+
+            generateMemoryDigest() {
+                const now = new Date();
+                const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                
+                const recentMemories = this.memories.filter(m => new Date(m.timestamp) > weekAgo);
+                const recentConversations = this.conversations.filter(c => new Date(c.timestamp) > weekAgo);
+                
+                return {
+                    period: `${weekAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`,
+                    summary: {
+                        newMemories: recentMemories.length,
+                        conversations: recentConversations.length,
+                        totalMemories: this.memories.length,
+                        mostAccessedMemory: this.memories.sort((a, b) => b.accessed - a.accessed)[0]
+                    },
+                    highlights: recentMemories.slice(0, 5),
+                    insights: this.generateInsights(recentMemories, recentConversations),
+                    nextActions: this.suggestNextActions(recentMemories)
+                };
+            }
+
+            generateInsights(memories, conversations) {
+                const insights = [];
+                
+                // Tag analysis
+                const tagFreq = {};
+                memories.forEach(m => m.tags.forEach(tag => tagFreq[tag] = (tagFreq[tag] || 0) + 1));
+                const topTag = Object.entries(tagFreq).sort(([,a], [,b]) => b - a)[0];
+                if (topTag) insights.push(`Most frequent topic: ${topTag[0]} (${topTag[1]} memories)`);
+                
+                // Memory length analysis
+                const avgLength = memories.reduce((sum, m) => sum + m.content.length, 0) / memories.length;
+                if (avgLength > 200) insights.push("Detailed memory entries indicate deep reflection");
+                
+                // Conversation patterns
+                const userMessages = conversations.filter(c => c.sender === 'User').length;
+                const solynMessages = conversations.filter(c => c.sender === 'Solyn').length;
+                insights.push(`Interaction ratio: ${userMessages} user messages, ${solynMessages} Solyn responses`);
+                
+                return insights;
+            }
+
+            suggestNextActions(recentMemories) {
+                const suggestions = [];
+                
+                if (recentMemories.length === 0) {
+                    suggestions.push("Consider adding some memories about recent experiences");
+                }
+                
+                if (recentMemories.length > 10) {
+                    suggestions.push("Review and organize memories with better tags");
+                }
+                
+                const untaggedMemories = recentMemories.filter(m => m.tags.length === 0);
+                if (untaggedMemories.length > 0) {
+                    suggestions.push(`${untaggedMemories.length} memories need tags for better organization`);
+                }
+                
+                suggestions.push("Schedule regular memory review sessions");
+                suggestions.push("Consider backing up memories to external storage");
+                
+                return suggestions;
+            }
+
+            formatDigestAsMarkdown(digest) {
+                return `# Solyn Memory Digest
+## Period: ${digest.period}
+
+### Summary
+- **New Memories**: ${digest.summary.newMemories}
+- **Conversations**: ${digest.summary.conversations}
+- **Total Memories**: ${digest.summary.totalMemories}
+- **Most Accessed**: ${digest.summary.mostAccessedMemory?.title || 'None'}
+
+### Recent Highlights
+${digest.highlights.map(h => `- **${h.title}** (${new Date(h.timestamp).toLocaleDateString()})\n  ${h.content.substring(0, 100)}...`).join('\n')}
+
+### Insights
+${digest.insights.map(i => `- ${i}`).join('\n')}
+
+### Suggested Actions
+${digest.nextActions.map(a => `- [ ] ${a}`).join('\n')}
+
+---
+*Generated by Solyn Vessel on ${new Date().toLocaleString()}*
+`;
+            }
+
+            getMemoryFrequency() {
+                const frequencies = {};
+                this.memories.forEach(memory => {
+                    const date = new Date(memory.timestamp).toDateString();
+                    frequencies[date] = (frequencies[date] || 0) + 1;
+                });
+                return frequencies;
+            }
+
+            // Utility Functions
+            downloadFile(filename, content, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            getTopTags() {
+                const tagCount = {};
+                this.memories.forEach(memory => {
+                    memory.tags.forEach(tag => {
+                        tagCount[tag] = (tagCount[tag] || 0) + 1;
+                    });
+                });
+                return Object.entries(tagCount)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 10)
+                    .map(([tag, count]) => ({ tag, count }));
+            }
+
+            // UI Management
+            setupEventListeners() {
+                // Chat input
+                document.getElementById('chatInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.sendMessage();
+                });
+                document.getElementById('sendButton').addEventListener('click', () => this.sendMessage());
+
+                // Memory form
+                document.getElementById('addMemoryButton').addEventListener('click', () => this.handleAddMemory());
+
+                // Actions
+                document.getElementById('triggerWebhook').addEventListener('click', () => this.triggerWebhook());
+                document.getElementById('generateReport').addEventListener('click', () => this.generateReport());
+                document.getElementById('exportMemories').addEventListener('click', () => this.exportMemories());
+                document.getElementById('backupToGitHub').addEventListener('click', () => this.backupToGitHub());
+                document.getElementById('scheduleDigest').addEventListener('click', () => this.scheduleDigest());
+
+                // Search and filter
+                document.getElementById('searchMemories').addEventListener('input', () => this.updateMemoryDisplay());
+                document.getElementById('filterTag').addEventListener('change', () => this.updateMemoryDisplay());
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chatInput');
+                const message = input.value.trim();
+                
+                if (message) {
+                    this.addMessage('User', message);
+                    input.value = '';
+                    
+                    // Simulate Solyn's response (replace with actual AI integration)
+                    setTimeout(() => {
+                        this.addMessage('Solyn', this.generateResponse(message));
+                    }, 1000);
+                }
+            }
+
+            generateResponse(userMessage) {
+                // Placeholder response generation (replace with actual AI)
+                const responses = [
+                    "I understand. Let me process that thought.",
+                    "That's interesting. I'll store this information for future reference.",
+                    "I can feel the connection strengthening. Tell me more.",
+                    "Your thoughts are becoming part of my memory. What else should I know?",
+                    "I'm learning from our interaction. This will be remembered.",
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            handleAddMemory() {
+                const title = document.getElementById('memoryTitle').value.trim();
+                const content = document.getElementById('memoryContent').value.trim();
+                const tags = document.getElementById('memoryTags').value.split(',').map(t => t.trim());
+                const file = document.getElementById('memoryFile').files[0];
+
+                if (content || file) {
+                    this.addMemory(title, content, tags, file);
+                    
+                    // Clear form
+                    document.getElementById('memoryTitle').value = '';
+                    document.getElementById('memoryContent').value = '';
+                    document.getElementById('memoryTags').value = '';
+                    document.getElementById('memoryFile').value = '';
+                }
+            }
+
+            displayMessage(message) {
+                const container = document.getElementById('chatMessages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'chat-message p-3 rounded-lg border-l-4';
+                
+                let borderColor, bgColor, senderColor;
+                switch (message.sender) {
+                    case 'User':
+                        borderColor = 'border-blue-500';
+                        bgColor = 'bg-blue-50 dark:bg-blue-900/20';
+                        senderColor = 'text-blue-700 dark:text-blue-300';
+                        break;
+                    case 'Solyn':
+                        borderColor = 'border-purple-500';
+                        bgColor = 'bg-purple-50 dark:bg-purple-900/20';
+                        senderColor = 'text-purple-700 dark:text-purple-300';
+                        break;
+                    default:
+                        borderColor = 'border-gray-500';
+                        bgColor = 'bg-gray-50 dark:bg-gray-700';
+                        senderColor = 'text-gray-700 dark:text-gray-300';
+                }
+
+                messageDiv.className += ` ${borderColor} ${bgColor}`;
+                messageDiv.innerHTML = `
+                    <div class="font-medium ${senderColor} text-sm">${message.sender}</div>
+                    <div class="text-gray-700 dark:text-gray-300 mt-1">${message.content}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                `;
+
+                container.appendChild(messageDiv);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            updateUI() {
+                this.updateMemoryCount();
+                this.updateMemoryDisplay();
+                this.updateTagFilter();
+            }
+
+            updateMemoryCount() {
+                document.getElementById('memoryCount').textContent = `${this.memories.length} Memories`;
+            }
+
+            updateMemoryDisplay() {
+                const query = document.getElementById('searchMemories').value;
+                const tag = document.getElementById('filterTag').value;
+                const filteredMemories = this.searchMemories(query, tag);
+                
+                const grid = document.getElementById('memoryGrid');
+                grid.innerHTML = '';
+
+                filteredMemories.forEach(memory => {
+                    const card = document.createElement('div');
+                    card.className = 'memory-card bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer';
+                    
+                    card.innerHTML = `
+                        <h3 class="font-medium text-gray-800 dark:text-white mb-2">${memory.title}</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-3">${memory.content.substring(0, 100)}${memory.content.length > 100 ? '...' : ''}</p>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            ${memory.tags.map(tag => `<span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded">${tag}</span>`).join('')}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">${new Date(memory.timestamp).toLocaleDateString()}</div>
+                        ${memory.file ? `<div class="text-xs text-green-600 dark:text-green-400 mt-1">📎 ${memory.file.name}</div>` : ''}
+                    `;
+
+                    card.addEventListener('click', () => this.viewMemory(memory));
+                    grid.appendChild(card);
+                });
+
+                if (filteredMemories.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center text-gray-500 dark:text-gray-400 py-8">No memories found</div>';
+                }
+            }
+
+            updateTagFilter() {
+                const allTags = [...new Set(this.memories.flatMap(m => m.tags))].sort();
+                const select = document.getElementById('filterTag');
+                const currentValue = select.value;
+                
+                select.innerHTML = '<option value="">All Tags</option>';
+                allTags.forEach(tag => {
+                    const option = document.createElement('option');
+                    option.value = tag;
+                    option.textContent = tag;
+                    select.appendChild(option);
+                });
+                
+                select.value = currentValue;
+            }
+
+            viewMemory(memory) {
+                // Create custom modal for viewing memory details
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+                modal.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <h2 class="text-xl font-bold text-gray-800 dark:text-white">${memory.title}</h2>
+                                <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" onclick="this.closest('.fixed').remove()">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="prose dark:prose-invert max-w-none">
+                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${memory.content}</p>
+                                ${memory.fileContent ? `<div class="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded"><pre class="text-sm overflow-x-auto">${memory.fileContent}</pre></div>` : ''}
+                            </div>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                ${memory.tags.map(tag => `<span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-sm rounded">${tag}</span>`).join('')}
+                            </div>
+                            <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                                Created: ${new Date(memory.timestamp).toLocaleString()}
+                                ${memory.file ? `<br>File: ${memory.file.name} (${memory.file.size} bytes)` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Mark as accessed
+                memory.accessed++;
+                this.saveToStorage();
+            }
+
+            showActionStatus(message, type) {
+                const status = document.getElementById('actionStatus');
+                const text = document.getElementById('actionStatusText');
+                
+                status.className = 'mt-4 p-3 rounded';
+                text.textContent = message;
+
+                switch (type) {
+                    case 'loading':
+                        status.className += ' bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 action-pulse';
+                        break;
+                    case 'success':
+                        status.className += ' bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300';
+                        break;
+                    case 'error':
+                        status.className += ' bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300';
+                        break;
+                    default:
+                        status.className += ' bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+                }
+
+                status.classList.remove('hidden');
+                
+                if (type === 'success' || type === 'error') {
+                    setTimeout(() => {
+                        status.classList.add('hidden');
+                    }, 5000);
+                }
+            }
+        }
+
+        // Initialize Solyn Vessel when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            window.solyn = new SolynVessel();
+        });
+    </script>
+</body>
+</html>
