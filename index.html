@@ -395,60 +395,40 @@
             }
 
             async backupToGitHub() {
-                this.showActionStatus('Creating GitHub backup...', 'loading');
-                
-                try {
-                    async backupToGitHub() {
-  this.showActionStatus('Sending backup to Netlify...', 'loading');
+  this.showActionStatus('Sending to GitHub via Netlify...', 'loading');
+
+  const payload = {
+    vessel: 'Solyn',
+    backupDate: new Date().toISOString(),
+    version: '1.0',
+    memories: this.memories,
+    conversations: this.conversations,
+    config: this.config,
+    analytics: {
+      memoryCount: this.memories.length,
+      conversationCount: this.conversations.length,
+      topTags: this.getTopTags(),
+      memoryFrequency: this.getMemoryFrequency(),
+      lastActivity: this.conversations.length > 0 ? this.conversations[this.conversations.length - 1].timestamp : null
+    }
+  };
 
   try {
-    const backupData = {
-      vessel: 'Solyn',
-      backupDate: new Date().toISOString(),
-      version: '1.0',
-      memories: this.memories,
-      conversations: this.conversations,
-      config: this.config,
-      analytics: {
-        memoryCount: this.memories.length,
-        conversationCount: this.conversations.length,
-        topTags: this.getTopTags(),
-        memoryFrequency: this.getMemoryFrequency(),
-        lastActivity: this.conversations.length
-          ? this.conversations[this.conversations.length - 1].timestamp
-          : null
-      }
-    };
-
     const response = await fetch('/.netlify/functions/backup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(backupData)
+      body: JSON.stringify(payload)
     });
 
-    if (!response.ok) throw new Error(await response.text());
+    const result = await response.json();
 
-    this.showActionStatus('Backup sent to GitHub via Netlify!', 'success');
-    this.addSystemMessage('Memory successfully backed up to GitHub.');
-  } catch (error) {
-    this.showActionStatus('Backup failed: ' + error.message, 'error');
-    this.addSystemMessage('GitHub backup failed: ' + error.message);
-  }
-}
-
-                    // Download backup (in production, this would push to GitHub)
-                    const backupContent = JSON.stringify(backupData, null, 2);
-                    this.downloadFile(`solyn-backup-${new Date().toISOString().split('T')[0]}.json`, backupContent, 'application/json');
-                    
-                    this.showActionStatus('GitHub backup created! (Downloaded locally)', 'success');
-                    this.addSystemMessage('Full vessel backup completed.');
-                    
-                    return true;
-                } catch (error) {
-                    this.showActionStatus('Backup failed: ' + error.message, 'error');
-                    return false;
-                }
-            }
+    if (result.success) {
+      this.showActionStatus('Backup uploaded to GitHub! 🔐', 'success');
+      this.addSystemMessage(`Backup saved: ${result.url}`);
+    } else {
+      throw new Error(result.error || 'Unknown error');
+    }
+  } catch (err) {
+    this.showActionStatus('Backup failed: ' + err.message, '
 
             async scheduleDigest() {
                 this.showActionStatus('Generating memory digest...', 'loading');
